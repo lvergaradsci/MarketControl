@@ -9,7 +9,7 @@
 // Si está vacío, el juego funciona en modo offline.
 // ================================================================
 
-const SHEETS_URL = ""; // ← Pega tu URL de Apps Script aquí
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbxYhegs7bSNHnIPnIRpjnU44O9cUCYokCkKH45NXjuH6M1WqELPLb2KPTFSnYBf0UbLrw/exec"; // ← Pega tu URL de Apps Script aquí
 
 const LeaderboardAPI = (() => {
 
