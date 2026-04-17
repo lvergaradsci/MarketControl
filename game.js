@@ -772,7 +772,7 @@ function formatTime(s) {
 function startLevel(n) {
   SFX.stopAmbi();
   GS.level = n;
-  const ids = ['screen-l1','screen-l2','screen-l3','screen-quiz','screen-results'];
+  const ids = ['screen-intro','screen-l1','screen-l2','screen-l3','screen-quiz','screen-results'];
   ids.forEach(id => document.getElementById(id)?.classList.remove('active'));
   showScreen(`screen-l${n}`);
 }
