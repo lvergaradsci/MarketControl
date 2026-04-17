@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market-Control: The Industrial Simulator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER GLOBAL (visible en todos los niveles)
+     ═══════════════════════════════════════════════════════════ -->
+<header class="app-header" id="app-header" style="display:none">
+  <div class="header-brand">MARKET<span>-CTRL</span></div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span id="header-player" style="font-size:12px;color:var(--text2)"></span>
+    <span class="level-pill" id="header-level">Nivel 1</span>
+    <span style="font-size:12px;color:var(--text2)">Pts:</span>
+    <span id="header-score" style="font-family:Orbitron,monospace;color:var(--cyan);font-size:13px;font-weight:700">0</span>
+  </div>
+  <div class="header-right">
+    <button id="btn-mute">🔊</button>
+  </div>
+</header>
+
+<!-- Barra de bienestar global -->
+<div class="welfare-bar-wrap" id="welfare-bar-wrap" style="display:none">
+  <span class="welfare-bar-label">⚖️ BIENESTAR SOCIAL</span>
+  <div class="welfare-bar"><div id="welfare-fill"></div></div>
+  <span id="welfare-pct" style="font-family:Orbitron,monospace;font-size:11px;color:var(--cyan);min-width:36px">30%</span>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PANTALLA INTRO
+     ═══════════════════════════════════════════════════════════ -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-glow"></div>
+
+  <div class="intro-badge">🏭 Ingeniería Industrial · Regulación de Mercados</div>
+  <h1 class="intro-title">
+    Market
+    <span class="accent">Control</span>
+  </h1>
+  <p class="intro-subtitle">The Industrial Simulator</p>
+
+  <div class="intro-objective" id="intro-objective"></div>
+
+  <div class="team-section">
+    <h3>Equipo de Supervisión</h3>
+    <div id="team-list"></div>
+  </div>
+
+  <div class="name-row">
+    <input type="text" id="player-name" class="name-input"
+      placeholder="Ingresa tu nombre para comenzar..."
+      maxlength="40" autocomplete="off">
+    <button class="btn btn-primary" id="btn-start">
+      ⚡ INICIAR SIMULACIÓN
+    </button>
+  </div>
+
+  <!-- Config Sheets (opcional) -->
+  <details style="margin-top:24px;max-width:420px;width:100%">
+    <summary style="font-size:11px;color:var(--text3);cursor:pointer;letter-spacing:.05em">⚙️ Configuración Google Sheets (opcional)</summary>
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+      <input type="url" id="sheets-url-input" class="name-input"
+        style="width:300px;font-size:12px;padding:8px 14px"
+        placeholder="https://script.google.com/macros/s/.../exec">
+      <button class="btn btn-secondary" style="padding:8px 14px;font-size:11px"
+        onclick="document.getElementById('sheets-url-input').value && LeaderboardAPI.setUrl(document.getElementById('sheets-url-input').value); showToast('✅ URL guardada','success')">
+        Guardar
+      </button>
+    </div>
+  </details>
+
+  <p id="intro-title-hidden" style="display:none" id="intro-title"></p>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NIVEL 1 — FLUJOS DE BIENESTAR
+     ═══════════════════════════════════════════════════════════ -->
+<div id="screen-l1" class="screen">
+  <div class="level-layout">
+    <div class="level-header">
+      <div class="level-num">NIVEL 01 · MECÁNICA DE FLUJOS</div>
+      <h2 class="level-title">Flujos de Bienestar</h2>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <span>⏱</span><span class="level-timer" id="l1-timer">90</span>
+        <span style="font-size:12px;color:var(--text2)">segundos</span>
+      </div>
+    </div>
+
+    <div class="theory-card" id="l1-theory"></div>
+    <div class="objective-card" id="l1-objective"></div>
+
+    <div class="l1-grid">
+      <!-- Tanques -->
+      <div class="tanks-section">
+        <h3>Destinos del flujo económico</h3>
+        <div id="l1-tanks"></div>
+      </div>
+
+      <!-- Válvulas -->
+      <div class="valves-section">
+        <h3>Panel de Válvulas Gubernamentales</h3>
+        <div id="l1-valves"></div>
+        <div id="l1-controls">
+          <!-- Controles dinámicos -->
+        </div>
+        <button class="btn btn-primary" id="btn-l1-start" style="margin-top:16px">
+          ▶ Abrir Válvulas
+        </button>
+      </div>
+    </div>
+
+    <div id="l1-result"></div>
+    <button class="btn btn-amber" id="btn-to-l2" style="display:none;margin-top:16px">
+      Nivel 2: Logística de Control →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NIVEL 2 — LOGÍSTICA DE CONTROL
+     ═══════════════════════════════════════════════════════════ -->
+<div id="screen-l2" class="screen">
+  <div class="level-layout">
+    <div class="level-header">
+      <div class="level-num">NIVEL 02 · LOGÍSTICA DE CONTROL</div>
+      <h2 class="level-title">Clasificación de Mercancías</h2>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <span>⏱</span><span class="level-timer" id="l2-timer">80</span>
+        <span style="font-size:12px;color:var(--text2)">segundos</span>
+      </div>
+    </div>
+
+    <div class="theory-card" id="l2-theory"></div>
+    <div class="objective-card" id="l2-objective"></div>
+
+    <!-- Cinta transportadora -->
+    <div id="l2-belt-area">
+      <div id="l2-belt-track"></div>
+      <div id="l2-belt"></div>
+      <div id="l2-score-display">
+        <div class="score-pill">✅ Puntos: <span id="l2-score-val">0</span></div>
+        <div class="score-pill">❌ Errores: <span id="l2-errors-val">0</span></div>
+      </div>
+    </div>
+
+    <!-- Zonas de clasificación -->
+    <div class="l2-grid" style="margin-top:20px">
+      <div class="zones-wrap" id="l2-zones"></div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="font-size:11px;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;font-weight:700">
+          📖 Guía de Clasificación
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7">
+          <div>✅ <strong style="color:var(--cyan)">Consumo Seguro:</strong> necesario, saludable, educativo</div>
+          <div>🚫 <strong style="color:var(--coral)">Sanciones:</strong> dañino, engañoso, monopolio</div>
+          <br>
+          <div style="color:var(--text3)">Arrastra las cajas a la zona correcta. Usa la pista del tipo de producto para decidir.</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-l2-start" style="margin-top:20px">
+      ▶ Encender Cinta Transportadora
+    </button>
+
+    <div id="l2-result"></div>
+    <button class="btn btn-amber" id="btn-to-l3" style="display:none;margin-top:16px">
+      Nivel 3: Circuito de Incentivos →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NIVEL 3 — CIRCUITO DE INCENTIVOS
+     ═══════════════════════════════════════════════════════════ -->
+<div id="screen-l3" class="screen">
+  <div class="level-layout">
+    <div class="level-header">
+      <div class="level-num">NIVEL 03 · CIRCUITO DE INCENTIVOS</div>
+      <h2 class="level-title">Redes de Apoyo Gubernamental</h2>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <span>⏱</span><span class="level-timer" id="l3-timer">100</span>
+        <span style="font-size:12px;color:var(--text2)">segundos</span>
+        <div class="score-pill">⚡ <span id="l3-score-val">0</span> pts</div>
+      </div>
+    </div>
+
+    <div class="theory-card" id="l3-theory"></div>
+    <div class="objective-card" id="l3-objective"></div>
+
+    <button class="btn btn-primary" id="btn-l3-start">
+      ▶ Activar Circuito
+    </button>
+
+    <div id="l3-board">
+      <div class="l3-grid" style="margin-top:20px">
+        <!-- Panel de incentivos -->
+        <div class="incentives-panel">
+          <h3>Herramientas de Incentivo</h3>
+          <div id="l3-incentives"></div>
+          <div style="margin-top:16px;font-size:11px;color:var(--text3);line-height:1.6">
+            💡 Arrastra el incentivo correcto hasta el sector que lo necesita.<br>
+            ⚠️ Evita conectar con los nodos rojos (Monopolio, Especulación).
+          </div>
+        </div>
+
+        <!-- SVG del circuito -->
+        <div class="circuit-board">
+          <svg id="l3-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+    </div>
+
+    <div id="l3-result"></div>
+    <button class="btn btn-amber" id="btn-to-quiz" style="display:none;margin-top:16px">
+      Quiz Final: Evaluación Teórica →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     QUIZ FINAL
+     ═══════════════════════════════════════════════════════════ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-container">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:11px;color:var(--text2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Evaluación Final</div>
+      <h2 style="font-size:1.2rem">¿Comprendiste el rol del gobierno?</h2>
+    </div>
+    <div class="quiz-progress"><div id="quiz-progress-fill"></div></div>
+    <div class="quiz-num" id="quiz-num">1/5</div>
+    <div id="quiz-q"></div>
+    <div id="quiz-opts"></div>
+    <div id="quiz-explanation" style="display:none"></div>
+    <button class="btn btn-primary" id="btn-quiz-next" style="display:none;width:100%;justify-content:center">
+      Siguiente →
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     RESULTADOS Y LEADERBOARD
+     ═══════════════════════════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+  <div class="results-layout">
+
+    <!-- Hero de resultados -->
+    <div class="results-hero">
+      <div class="res-rank-badge" id="res-rank-badge">🏆</div>
+      <div class="res-name" id="res-name">Jugador</div>
+      <div class="res-score" id="res-score">0</div>
+      <div class="res-rank" id="res-rank">Rango</div>
+      <div class="res-msg"  id="res-msg">Mensaje</div>
+
+      <div style="display:flex;align-items:center;gap:8px;justify-content:center;margin:12px 0;font-size:12px;color:var(--text2)">
+        <span>⏱ Tiempo:</span><span id="res-time" style="color:var(--amber);font-family:Orbitron,monospace">0:00</span>
+      </div>
+
+      <div class="scores-breakdown">
+        <div class="score-card">
+          <div class="score-card__label">🌊 Nivel 1</div>
+          <div class="score-card__val" id="res-l1">0</div>
+        </div>
+        <div class="score-card">
+          <div class="score-card__label">📦 Nivel 2</div>
+          <div class="score-card__val" id="res-l2">0</div>
+        </div>
+        <div class="score-card">
+          <div class="score-card__label">🔌 Nivel 3</div>
+          <div class="score-card__val" id="res-l3">0</div>
+        </div>
+        <div class="score-card">
+          <div class="score-card__label">📝 Quiz</div>
+          <div class="score-card__val" id="res-quiz">0</div>
+        </div>
+      </div>
+
+      <!-- Reflexión pedagógica final -->
+      <div style="background:rgba(0,212,170,0.05);border:1px solid rgba(0,212,170,0.2);border-radius:12px;padding:14px;font-size:12px;color:var(--text2);line-height:1.7;text-align:left;margin-top:12px">
+        <strong style="color:var(--cyan)">💡 Conclusión:</strong>
+        El gobierno cumple un papel fundamental en la regulación del mercado. A través de normas, impuestos e incentivos, busca corregir las fallas del mercado y proteger a la población.
+        Es importante mantener un equilibrio entre libertad económica e intervención del Estado.
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px">
+        <button class="btn btn-primary" id="btn-play-again">🔄 Jugar de nuevo</button>
+        <button class="btn btn-secondary" id="btn-refresh-lb">🔄 Actualizar ranking</button>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="leaderboard-card">
+      <h2>🏆 Ranking de Ingenieros</h2>
+      <div id="leaderboard-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="data.js"></script>
+<script src="sheets.js"></script>
+<script src="sound.js"></script>
+<script src="game.js"></script>
+
+<script>
+  // Mostrar header después de iniciar
+  function startLevel(n) {
+    document.getElementById('app-header').style.display = 'flex';
+    document.getElementById('welfare-bar-wrap').style.display = 'flex';
+    document.getElementById('header-player').textContent = GS.playerName;
+    document.getElementById('header-level').textContent  = `Nivel ${n}`;
+    SFX.stopAmbi();
+    GS.level = n;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    showScreen(`screen-l${n}`);
+  }
+  // Parchear para actualizar header con puntos totales
+  const _origShowResult = typeof showResults !== 'undefined' ? showResults : null;
+  setInterval(() => {
+    const sc = document.getElementById('header-score');
+    if (sc) sc.textContent = GS.totalScore.toLocaleString();
+  }, 1000);
+</script>
+</body>
+</html>
